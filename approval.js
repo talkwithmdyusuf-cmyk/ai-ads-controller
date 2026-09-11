@@ -141,16 +141,102 @@ function checkApproval(action) {
       reason: "Targeting change is allowed"
     };
   }
+// Campaign edits
 
-  // Major changes
-  if (rules.approval.require_approval_for_major_changes) {
+if (action.type === "campaign_update") {
+
+  return {
+    approved: false,
+    requires_approval: true,
+    reason: "Campaign changes require human approval"
+  };
+
+}
+
+// Ad set creation
+
+if (action.type === "adset_creation") {
+
+  return {
+    approved: false,
+    requires_approval: true,
+    reason: "Ad set creation requires human approval"
+  };
+
+}
+
+// Ad set edits
+
+if (action.type === "adset_update") {
+
+  return {
+    approved: false,
+    requires_approval: true,
+    reason: "Ad set changes require human approval"
+  };
+
+}
+
+// Ad creation
+
+if (action.type === "ad_creation") {
+
+  if (rules.creative.require_approval_for_new_creatives) {
+
     return {
       approved: false,
       requires_approval: true,
-      reason: "Major changes require human approval"
+      reason: "New ads require human approval"
     };
+
   }
 
+  return {
+    approved: true,
+    requires_approval: false,
+    reason: "Ad creation is allowed"
+  };
+
+}
+
+// Ad edits
+
+if (action.type === "ad_update") {
+
+  return {
+    approved: false,
+    requires_approval: true,
+    reason: "Ad changes require human approval"
+  };
+
+}
+
+// Duplication
+
+if (
+  action.type === "campaign_duplication" ||
+  action.type === "adset_duplication" ||
+  action.type === "ad_duplication"
+) {
+
+  return {
+    approved: false,
+    requires_approval: true,
+    reason: "Duplication requires human approval"
+  };
+
+}
+// Major changes
+
+if (rules.automation.require_approval_for_major_changes) {
+
+  return {
+    approved: false,
+    requires_approval: true,
+    reason: "Major changes require human approval"
+  };
+
+}
   return {
     approved: true,
     requires_approval: false,

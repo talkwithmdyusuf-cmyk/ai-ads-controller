@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const { registerWriteRoutes } = require("./write-routes");
 const Fastify = require("fastify");
 const axios = require("axios");
 
@@ -746,7 +746,33 @@ app.post(
           }
         );
       }
+      else if (
+        action.type === "campaign_creation"
+      ) {
 
+        const metaData = {
+          name: action.name,
+          objective: action.objective,
+          status: "PAUSED",
+          daily_budget: Math.round(
+            Number(action.daily_budget_rupees) * 100
+          ),
+          special_ad_categories: JSON.stringify(
+            Array.isArray(action.special_ad_categories)
+              ? action.special_ad_categories
+              : []
+          )
+        };
+
+        if (action.bid_strategy) {
+          metaData.bid_strategy = action.bid_strategy;
+        }
+
+        result = await metaPost(
+          `/${META_AD_ACCOUNT_ID}/campaigns`,
+          metaData
+        );
+      }
       else if (
         action.type === "campaign_pause"
       ) {
@@ -823,7 +849,111 @@ app.post(
     }
   }
 );
+// --------------------------------------------------
+// CREATE CAMPAIGN
+// --------------------------------------------------
 
+app.post(
+  "/meta/campaigns/create",
+  { preHandler: authenticate },
+  async (request, reply) => {
+    try {
+      const {
+        name,
+        objective,
+        daily_budget_rupees,
+        special_ad_categories = [],
+        bid_strategy
+      } = request.body || {};
+
+      if (!name || typeof name !== "string") {
+        return reply.code(400).send({
+          success: false,
+          error: "Campaign name is required"
+        });
+      }
+
+      if (!objective || typeof objective !== "string") {
+        return reply.code(400).send({
+          success: false,
+          error: "Campaign objective is required"
+        });
+      }
+
+      const budget = Number(daily_budget_rupees);
+
+      if (!Number.isFinite(budget) || budget <= 0) {
+        return reply.code(400).send({
+          success: false,
+          error: "daily_budget_rupees must be a positive number"
+        });
+      }
+
+      const action = {
+        type: "campaign_creation",
+        name,
+        objective,
+        daily_budget_rupees: budget,
+        special_ad_categories,
+        bid_strategy: bid_strategy || null,
+        status: "PAUSED"
+      };
+
+      const protection = await protectAction(action);
+
+      if (!protection.allowed) {
+        return reply.code(
+          protection.approval_required ? 202 : 403
+        ).send({
+          success: false,
+          ...protection
+        });
+      }
+
+      const metaData = {
+        name,
+        objective,
+        status: "PAUSED",
+        daily_budget: Math.round(budget * 100),
+        special_ad_categories: JSON.stringify(
+          Array.isArray(special_ad_categories)
+            ? special_ad_categories
+            : []
+        )
+      };
+
+      if (bid_strategy) {
+        metaData.bid_strategy = bid_strategy;
+      }
+
+      const result = await metaPost(
+        `/${META_AD_ACCOUNT_ID}/campaigns`,
+        metaData
+      );
+
+      return {
+        success: true,
+        executed: true,
+        action,
+        meta_result: result
+      };
+
+    } catch (error) {
+      return reply.code(400).send({
+        success: false,
+        error: error.response?.data || error.message
+      });
+    }
+  }
+);
+registerWriteRoutes({
+  app,
+  authenticate,
+  metaGet,
+  metaPost,
+  protectAction,
+  META_AD_ACCOUNT_ID
+});
 // --------------------------------------------------
 // GLOBAL ERROR HANDLER
 // --------------------------------------------------
