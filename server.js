@@ -292,28 +292,41 @@ app.get(
 // --------------------------------------------------
 
 async function protectAction(action) {
-  const result = checkApproval(action);
+  /*
+   * HARD HUMAN-APPROVAL GATE
+   *
+   * Every write action must be approved by the human before
+   * anything is sent to Meta.
+   *
+   * Read operations are unaffected.
+   *
+   * DELETE remains permanently blocked elsewhere.
+   */
 
-  if (!result.approved && result.requires_approval) {
-    const approval = createApproval(action);
-
-    return {
-      allowed: false,
-      approval_required: true,
-      approval
-    };
-  }
-
-  if (!result.approved) {
+  if (!action || !action.type) {
     return {
       allowed: false,
       approval_required: false,
-      reason: result.reason
+      reason: "Action type is required"
     };
   }
 
+  // Deletion is permanently forbidden.
+  if (action.type === "delete" || action.type.endsWith("_delete")) {
+    return {
+      allowed: false,
+      approval_required: false,
+      reason: "Deletion is permanently disabled"
+    };
+  }
+
+  // Always create a human approval request for every write.
+  const approval = createApproval(action, "Human approval required before execution");
+
   return {
-    allowed: true
+    allowed: false,
+    approval_required: true,
+    approval
   };
 }
 
@@ -612,17 +625,24 @@ app.post(
     try {
       const action = request.body;
 
-      const check = checkApproval(action);
-
-      if (!check.requires_approval) {
-        return {
-          success: true,
-          approval_required: false,
-          check
-        };
+      if (!action || !action.type) {
+        return reply.code(400).send({
+          success: false,
+          error: "Action type is required"
+        });
       }
 
-      const approval = createApproval(action);
+      if (action.type === "delete" || action.type.endsWith("_delete")) {
+        return reply.code(403).send({
+          success: false,
+          error: "Deletion is permanently disabled"
+        });
+      }
+
+      const approval = createApproval(
+        action,
+        "Human approval required before execution"
+      );
 
       return reply.code(202).send({
         success: true,

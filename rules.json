@@ -16,7 +16,7 @@
   },
   "targeting": {
     "approved_locations": [],
-    "allow_new_locations": false,
+    "allow_new_locations": true,
     "require_approval_for_targeting_changes": true
   },
   "creative": {
