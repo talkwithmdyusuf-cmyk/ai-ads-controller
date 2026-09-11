@@ -952,6 +952,7 @@ registerWriteRoutes({
   metaGet,
   metaPost,
   protectAction,
+  createApproval,
   META_AD_ACCOUNT_ID
 });
 // --------------------------------------------------

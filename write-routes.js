@@ -4,6 +4,7 @@ function registerWriteRoutes({
   metaGet,
   metaPost,
   protectAction,
+  createApproval,
   META_AD_ACCOUNT_ID
 }) {
 
@@ -358,16 +359,23 @@ function registerWriteRoutes({
 
       if (!protection.allowed) {
 
-        return reply.code(
-          protection.approval_required
-            ? 202
-            : 403
-        ).send({
-          success: false,
-          ...protection
-        });
-      }
+         if (protection.approval_required) {
 
+            const approval = createApproval(action);
+
+             return reply.code(202).send({
+                success: false,
+                approval_required: true,
+                approval
+              });
+
+             }
+
+  return reply.code(403).send({
+    success: false,
+    ...protection
+  });
+}
       const result =
         await executeAction(action);
 
