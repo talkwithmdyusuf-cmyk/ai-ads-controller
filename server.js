@@ -59,7 +59,8 @@ async function metaGet(path, params = {}) {
     params: {
       access_token: META_ACCESS_TOKEN,
       ...params
-    }
+    },
+    timeout: 20000
   });
 
   return response.data;
@@ -73,7 +74,8 @@ async function metaPost(path, data = {}) {
       params: {
         access_token: META_ACCESS_TOKEN,
         ...data
-      }
+      },
+      timeout: 20000
     }
   );
 
