@@ -1,0 +1,30 @@
+{
+  "client": {
+    "name": "Zaacy India"
+  },
+  "budget": {
+    "monthly_limit": 20000,
+    "max_daily_budget": 1000,
+    "max_budget_increase_percent": 20,
+    "max_budget_decrease_percent": 50
+  },
+  "campaign": {
+    "goal": "qualified_leads",
+    "allow_creation": true,
+    "allow_deletion": false,
+    "require_approval_for_creation": true
+  },
+  "targeting": {
+    "approved_locations": [],
+    "allow_new_locations": false,
+    "require_approval_for_targeting_changes": true
+  },
+  "creative": {
+    "require_approval_for_new_creatives": true
+  },
+  "automation": {
+    "allow_automatic_budget_changes": false,
+    "allow_automatic_campaign_pause": false,
+    "require_approval_for_major_changes": true
+  }
+}
