@@ -43,7 +43,7 @@ const META_BASE = `https://graph.facebook.com/${META_API_VERSION}`;
 // SECURITY
 // --------------------------------------------------
 
-function authenticate(request, reply) {
+async function authenticate(request, reply) {
   const auth = request.headers.authorization || "";
 
   if (auth !== `Bearer ${SERVER_API_KEY}`) {
@@ -52,9 +52,12 @@ function authenticate(request, reply) {
       error: "Unauthorized"
     });
   }
+
+  return;
 }
 
 async function metaGet(path, params = {}) {
+  console.log("DEBUG: metaGet START", path);
   const response = await axios.get(`${META_BASE}${path}`, {
     params: {
       access_token: META_ACCESS_TOKEN,
@@ -63,6 +66,7 @@ async function metaGet(path, params = {}) {
     timeout: 20000
   });
 
+  console.log("DEBUG: metaGet SUCCESS", path);
   return response.data;
 }
 
@@ -104,6 +108,7 @@ app.get(
   { preHandler: authenticate },
   async (request, reply) => {
     try {
+      console.log("DEBUG: /meta/account HANDLER START");
       const data = await metaGet(`/${META_AD_ACCOUNT_ID}`, {
         fields: "id,name,account_status,currency,timezone_name,amount_spent"
       });
