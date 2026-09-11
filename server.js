@@ -90,6 +90,22 @@ async function metaPost(path, data = {}) {
 // HEALTH
 // --------------------------------------------------
 
+
+// --------------------------------------------------
+// GPT ACTION HEALTH ENDPOINT
+// PUBLIC - NO AUTH REQUIRED
+// --------------------------------------------------
+
+app.get("/gpt/health", async (request, reply) => {
+  return reply.code(200).send({
+    success: true,
+    service: "AI Ads Controller",
+    status: "online",
+    controller: true,
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get("/health", async () => {
   return {
     success: true,
